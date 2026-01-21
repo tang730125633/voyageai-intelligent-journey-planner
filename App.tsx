@@ -377,35 +377,36 @@ const App: React.FC = () => {
           {/* AI Structured Data Section */}
           {aiPlan && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col gap-3">
-                <div className="flex items-center gap-2 text-indigo-600">
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col gap-3 h-64">
+                <div className="flex items-center gap-2 text-indigo-600 flex-shrink-0">
                   <Wallet size={18} />
                   <span className="font-semibold text-sm">Budget</span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">{aiPlan.budgetEstimate}</p>
+                <div className="text-xs text-slate-600 leading-relaxed overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-400">
+                  {aiPlan.budgetEstimate}
+                </div>
               </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col gap-3">
-                <div className="flex items-center gap-2 text-amber-600">
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col gap-3 h-64">
+                <div className="flex items-center gap-2 text-amber-600 flex-shrink-0">
                   <AlertTriangle size={18} />
                   <span className="font-semibold text-sm">Warnings</span>
                 </div>
-                <ul className="text-xs text-slate-600 list-disc list-inside space-y-1">
-                  {aiPlan.risks.slice(0, 3).map((risk, i) => <li key={i}>{risk}</li>)}
+                <ul className="text-xs text-slate-600 list-disc list-inside space-y-1.5 overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-400">
+                  {aiPlan.risks.map((risk, i) => <li key={i} className="leading-relaxed">{risk}</li>)}
                 </ul>
               </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col gap-3">
-                <div className="flex items-center gap-2 text-blue-600">
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col gap-3 h-64">
+                <div className="flex items-center gap-2 text-blue-600 flex-shrink-0">
                   <Calendar size={18} />
                   <span className="font-semibold text-sm">Itinerary</span>
                 </div>
-                <div className="text-xs text-slate-600 space-y-1">
-                  {aiPlan.itinerary.slice(0, 2).map((day, i) => (
+                <div className="text-xs text-slate-600 space-y-2 overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-400">
+                  {aiPlan.itinerary.map((day, i) => (
                     <div key={i} className="flex gap-2">
-                      <span className="font-bold text-blue-500">D{day.day}:</span>
-                      <span className="truncate">{day.title}</span>
+                      <span className="font-bold text-blue-500 flex-shrink-0">D{day.day}:</span>
+                      <span className="leading-relaxed">{day.title}</span>
                     </div>
                   ))}
-                  {aiPlan.itinerary.length > 2 && <p className="text-[10px] italic">+{aiPlan.itinerary.length - 2} more days</p>}
                 </div>
               </div>
             </div>
