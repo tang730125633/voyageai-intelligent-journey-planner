@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Navigation, 
-  Settings, 
-  History, 
-  LogOut, 
-  MapPin, 
-  ArrowRight, 
-  Sparkles, 
+import {
+  Navigation,
+  Settings,
+  History,
+  LogOut,
+  MapPin,
+  ArrowRight,
+  Sparkles,
   AlertCircle,
   Clock,
   Compass,
@@ -22,11 +22,12 @@ import { RouteData, AIPlanResponse, ChatMessage, HistoryRecord } from './types';
 import MapView from './components/MapView';
 import ChatPanel from './components/ChatPanel';
 import ErrorNotification from './components/ErrorNotification';
+import ApiKeyModal from './components/ApiKeyModal';
 
 const App: React.FC = () => {
   const [apiKey, setApiKey] = useState<string | null>(() => localStorage.getItem('voyage_api_key'));
-  const [isAuthValidating, setIsAuthValidating] = useState(false);
-  const [authError, setAuthError] = useState('');
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
@@ -45,18 +46,25 @@ const App: React.FC = () => {
   // Route service instance
   const routeService = new RouteService();
 
-  const handleLogin = async (key: string) => {
-    setIsAuthValidating(true);
-    setAuthError('');
-    const service = new GLMService(key);
-    const isValid = await service.validateKey();
-    if (isValid) {
-      localStorage.setItem('voyage_api_key', key);
-      setApiKey(key);
-    } else {
-      setAuthError('Invalid API Key. Please check and try again.');
+  // Check if this is the first visit
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('voyage_seen_welcome');
+    if (!hasSeenWelcome && !apiKey) {
+      setShowWelcomeModal(true);
+      localStorage.setItem('voyage_seen_welcome', 'true');
     }
-    setIsAuthValidating(false);
+  }, [apiKey]);
+
+  const handleSaveApiKey = async (key: string) => {
+    localStorage.setItem('voyage_api_key', key);
+    setApiKey(key);
+  };
+
+  const handleUseDemoMode = () => {
+    const demoKey = '0a0620e8b7394690b2945f3dc3dca502.xghC4HTyFgWFKZbx';
+    localStorage.setItem('voyage_api_key', demoKey);
+    setApiKey(demoKey);
+    setShowWelcomeModal(false);
   };
 
   const handleLogout = () => {
@@ -172,56 +180,62 @@ const App: React.FC = () => {
     });
   };
 
-  if (!apiKey) {
+  // Welcome Modal (first time visit)
+  if (!apiKey && showWelcomeModal) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-blue-200/50 p-8 border border-white">
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-300">
-              <Navigation size={32} />
+      <>
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+          <div className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-blue-200/50 p-8 border border-white">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-300">
+                <Navigation size={32} />
+              </div>
             </div>
-          </div>
-          <h1 className="text-2xl font-bold text-center text-slate-900 mb-2">VoyageAI</h1>
-          <p className="text-slate-500 text-center text-sm mb-8">Next-gen travel intelligence powered by AI.</p>
+            <h1 className="text-2xl font-bold text-center text-slate-900 mb-2">欢迎使用 VoyageAI</h1>
+            <p className="text-slate-500 text-center text-sm mb-8">智能旅行规划助手，让旅程更美好</p>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">GLM API Key (Optional)</label>
-              <input
-                type="password"
-                placeholder="Leave empty to use default..."
-                onChange={(e) => setAuthError('')}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin((e.target as HTMLInputElement).value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-              />
-              {authError && (
-                <div className="mt-2 flex items-center gap-2 text-red-500 text-xs font-medium">
-                  <AlertCircle size={14} />
-                  <span>{authError}</span>
-                </div>
-              )}
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowWelcomeModal(false);
+                  setShowApiKeyModal(true);
+                }}
+                className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 flex items-center justify-center gap-2"
+              >
+                <Sparkles size={18} />
+                配置我的 API Key
+              </button>
+
+              <button
+                onClick={handleUseDemoMode}
+                className="w-full py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-all"
+              >
+                体验模式（使用默认配置）
+              </button>
             </div>
-            <button
-              disabled={isAuthValidating}
-              onClick={(e) => {
-                const input = (e.currentTarget.previousElementSibling?.querySelector('input') as HTMLInputElement);
-                const key = input.value.trim() || '0a0620e8b7394690b2945f3dc3dca502.xghC4HTyFgWFKZbx';
-                handleLogin(key);
-              }}
-              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-all shadow-md shadow-blue-200 flex items-center justify-center gap-2"
-            >
-              {isAuthValidating ? <Loader2 className="animate-spin" size={18} /> : 'Start Planning'}
-            </button>
-          </div>
-          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center gap-2">
-            <p className="text-[10px] text-slate-400 text-center uppercase tracking-widest leading-relaxed">
-              Powered by GLM-4<br/>
-              Secure & Private
-            </p>
+
+            <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center gap-2">
+              <p className="text-[10px] text-slate-400 text-center uppercase tracking-widest leading-relaxed">
+                Powered by GLM-4<br/>
+                安全 & 私密
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+        <ApiKeyModal
+          isOpen={showApiKeyModal}
+          onClose={() => setShowApiKeyModal(false)}
+          onSave={handleSaveApiKey}
+          currentApiKey={apiKey}
+        />
+      </>
     );
+  }
+
+  // If no API key and modal dismissed, redirect to welcome
+  if (!apiKey) {
+    setShowWelcomeModal(true);
+    return null;
   }
 
   return (
@@ -232,6 +246,13 @@ const App: React.FC = () => {
           onClose={() => setErrorMessage('')}
         />
       )}
+
+      <ApiKeyModal
+        isOpen={showApiKeyModal}
+        onClose={() => setShowApiKeyModal(false)}
+        onSave={handleSaveApiKey}
+        currentApiKey={apiKey}
+      />
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
@@ -248,7 +269,18 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-3">
-            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+            <button
+              onClick={() => setShowApiKeyModal(true)}
+              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+              title="API 设置"
+            >
+              <Settings size={20} />
+            </button>
+            <button
+              onClick={handleLogout}
+              className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+              title="退出登录"
+            >
               <LogOut size={20} />
             </button>
           </div>
