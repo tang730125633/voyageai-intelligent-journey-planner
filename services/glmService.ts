@@ -2,7 +2,10 @@ import { AIPlanResponse, RouteData } from "../types";
 
 export class GLMService {
   private apiKey: string;
-  private baseURL: string = '/api/glm'; // 使用 Vite 代理
+  // 开发环境使用代理，生产环境直接调用 API
+  private baseURL: string = import.meta.env.PROD
+    ? 'https://open.bigmodel.cn/api/paas/v4'
+    : '/api/glm';
 
   constructor(apiKey: string = '0a0620e8b7394690b2945f3dc3dca502.xghC4HTyFgWFKZbx') {
     this.apiKey = apiKey;
