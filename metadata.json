@@ -1,0 +1,8 @@
+
+{
+  "name": "VoyageAI - Intelligent Journey Planner",
+  "description": "A sophisticated travel planning application that combines real-time routing with Gemini-powered AI itineraries and local history management.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
