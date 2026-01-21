@@ -46,12 +46,10 @@ const App: React.FC = () => {
   // Route service instance
   const routeService = new RouteService();
 
-  // Check if this is the first visit
+  // Show welcome modal when no API key
   useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('voyage_seen_welcome');
-    if (!hasSeenWelcome && !apiKey) {
+    if (!apiKey) {
       setShowWelcomeModal(true);
-      localStorage.setItem('voyage_seen_welcome', 'true');
     }
   }, [apiKey]);
 
